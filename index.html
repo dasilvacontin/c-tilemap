@@ -1,0 +1,219 @@
+<html>
+<head>
+	<link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+	<style>
+
+		body {
+			margin: 0px;
+			padding: 0px;
+			background-color: #F1F1F1;
+			font-family: Arial;
+		}
+
+		h1 {
+			color: #00A7B3;
+			font-size: 40px;
+			margin: 50px 0px;
+			padding: 0px;
+		}
+
+		h2 {
+			color: #bbbbbb;
+			font-size: 20px;
+			font-weight: normal;
+			margin: 20px 0px;
+			padding: 0px;
+		}
+
+		p {
+			color: #bbbbbb;
+			font-size: 16px;
+			margin: 20px 0px;
+			padding: 0px;
+		}
+
+		a {
+			color: #00A7B3;
+			text-decoration: none;
+		}
+
+		#wrapper {
+			width: 650px;
+			margin: auto;
+			margin-top: 200px;
+			margin-bottom: 100px;
+			opacity: 0;
+			transition: opacity 1s, margin 1s;
+		}
+
+		.sometext {
+			margin-top: 50px;
+			margin-bottom: 50px;
+		}
+
+		#buttons {
+			overflow: hidden;
+		}
+
+		.big-button {
+			width: 300px;
+			height: 100px;
+			background-color: #FFFFFF;
+			line-height: 100px;
+			text-align: center;
+			color: #cccccc;
+			cursor: pointer;
+			font-size: 16px;
+
+			transition: opacity 1s;
+		}
+
+		.left {
+			float: left;
+		}
+
+		.right {
+			float: right;
+		}
+
+		#download {
+			opacity: 0;
+		}
+
+		#download > a {
+			color: white;
+		}
+
+		.big-button:hover {
+			color: #00A7B3;
+		}
+
+		.big-button.active {
+			background-color: #00A7B3;
+			color: #FFFFFF;
+		}
+
+		#uploaded {
+			display: none;
+		}
+
+		.fa-check {
+			transition: opacity 1s;
+			opacity: 0;
+			color: #00A7B3;
+		}
+
+	</style>
+</head>
+<body>
+
+	<div id="wrapper">
+		<h1>c-tilemap</h1>
+		<div class="sometext">
+			<h2>open-source util that converts <a href="http://www.mapeditor.org/" target="_blank">Tiled</a> tilemaps to plain sweet c arrays.</h2>
+			
+		</div>
+		<div id="buttons">
+			<div id="dropper" class="big-button left">	
+				<i class="fa fa-check"></i> drop json tilemap <i id="the-tick" class="fa fa-check"></i>
+			</div>
+			<a href="#" target="_blank" id="download" class="big-button right active">	
+				download c array
+			</a>
+		</div>
+		<div class="sometext">
+			<p>by <a href="https://twitter.com/dasilvacontin" target="_blank">@dasilvacontin</a><i id="the-tick" class="fa fa-check"></i></p>
+		</div>
+	</div> <!-- end of wrapper -->
+
+	<script>
+
+		var tick = document.getElementById('the-tick');
+
+		var download_button = document.getElementById('download');
+
+		function max_digits(data) {
+			var max = 0;
+			for (var i = 0; i < data.length; ++i) {
+				var digits = data[i].toString().length;
+				if (digits > max) max = digits;
+			}
+			return digits;
+		}
+
+		function converter(tilemap) {
+
+			console.log(tilemap);
+			var result = "int tilemap[] = {\n"
+			var layer = tilemap.layers[0];
+			var data = layer.data;
+
+			var digits = max_digits(data);
+
+			for (var i = 0; i < layer.height; ++i) {
+				result += "\t";
+				for (var j = 0; j < layer.width; ++j) {
+
+					var num = data[i*layer.width+j];
+					var d = num.toString().length;
+
+					for (var k = 0; k < (digits-d); ++k) result += " ";
+					result += num + ", ";
+
+				}
+				result +="\n";
+			}
+			result = result.substring(0, result.length - 1);
+			result += "\n};";
+
+			download.href = "data:application/json;base64,"+btoa(result);
+
+		}
+
+		function handleFileSelect(evt) {
+
+			evt.stopPropagation();
+    		evt.preventDefault();
+
+			var files = evt.dataTransfer.files; // FileList object
+
+			for (var i = 0, f; f = files[i]; i++) {
+
+				var reader = new FileReader();
+				reader.onload = function(e) {
+
+					console.log(e.target.result);
+					var json = atob(e.target.result.split(',')[1]);
+					var tilemap = JSON.parse(json);
+					converter(tilemap);
+
+				};
+				reader.readAsDataURL(f);
+
+			}
+
+    		
+    		tick.style.display = 'inline-block';
+    		setTimeout(function(){tick.style.opacity = 1;},1);
+    		download_button.style.opacity = 1;
+
+		}
+
+		function handleDragOver(evt) {
+			evt.stopPropagation();
+			evt.preventDefault();
+			evt.dataTransfer.dropEffect = 'copy';
+		}
+
+		var dropzone = document.getElementById('dropper');
+		dropzone.addEventListener('dragover', handleDragOver, false);
+		dropzone.addEventListener('drop', handleFileSelect, false);
+
+		window.onload = function () {
+			var wrapper = document.getElementById("wrapper");
+			wrapper.style.opacity = 1;
+			wrapper.style.marginTop = "100px";
+		}
+
+	</script>
+</body>
